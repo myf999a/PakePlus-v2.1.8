@@ -1,11 +1,979 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        Hello World
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>净退出价计算器 | 多标题批量生成</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f2f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-size: 14px;
+            height: 100vh;
+            overflow: hidden;
+            color: #1e2f3a;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            width: 440px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 18px 16px;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.02);
+        }
+
+        .right-panel {
+            flex: 1;
+            background: #f9fafc;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 18px 20px;
+        }
+
+        .titles-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            border: 1px solid #eef2f8;
+        }
+
+        .double-card {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .half-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 18px;
+            padding: 12px 12px;
+            border: 1px solid #eef2f8;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-left: 3px solid #ff6b4a;
+            padding-left: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a5b6e;
+            margin-bottom: 4px;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #f8fafd;
+            border-radius: 12px;
+            padding: 5px 10px;
+            border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .input-wrapper:focus-within {
+            border-color: #ff6b4a;
+            background: #fff;
+        }
+        .input-wrapper input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            padding: 4px 0;
+            outline: none;
+            font-weight: 500;
+            width: 100%;
+        }
+        .input-suffix {
+            font-size: 12px;
+            color: #8e9aaf;
+            margin-left: 6px;
+        }
+
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #edf2f7;
+        }
+        .switch-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.2s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.2s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff6b4a;
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .roi-big {
+            background: #fff6f2;
+            border-radius: 18px;
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ffe0d6;
+        }
+        .roi-label {
+            font-size: 13px;
+            color: #8e9aaf;
+        }
+        .roi-number {
+            font-size: 38px;
+            font-weight: 800;
+            color: #ff6b4a;
+            line-height: 1;
+            margin: 6px 0;
+        }
+
+        .mult-grid {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .mult-item {
+            flex: 1;
+            background: #f5f7fb;
+            border-radius: 16px;
+            text-align: center;
+            padding: 6px 4px;
+        }
+        .mult-factor {
+            font-size: 10px;
+            color: #7e8b9e;
+        }
+        .mult-value {
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 3px;
+        }
+
+        /* 右侧标题组 - 三列并排 */
+        .prefix-group {
+            background: #fff;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            border: 1px solid #eef2f8;
+        }
+        .triple-row {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+        .prefix-col {
+            width: 100px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .prefix-input {
+            width: 100%;
+            padding: 8px 8px;
+            border-radius: 30px;
+            border: 1px solid #cfdee9;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            background: #fff;
+            outline: none;
+        }
+        .prefix-input:focus {
+            border-color: #ff6b4a;
+        }
+        .title-col {
+            flex: 1;
+            background: #fafcff;
+            border-radius: 18px;
+            padding: 10px 12px;
+            border: 1px solid #eef2f9;
+            transition: 0.1s;
+        }
+        .title-col:hover {
+            background: #fff9f7;
+            border-color: #ffe0d6;
+        }
+        .title-text {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 11px;
+            background: #f1f5f9;
+            padding: 6px 10px;
+            border-radius: 14px;
+            color: #1e2f3a;
+            word-break: break-all;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .copy-btn-sm {
+            background: #ff6b4a;
+            border: none;
+            color: white;
+            font-size: 11px;
+            padding: 5px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.1s;
+            width: 100%;
+        }
+        .copy-btn-sm:active {
+            transform: scale(0.97);
+            background: #e55a3c;
+        }
+
+        .badge-nodate {
+            background: #eef2ff;
+            color: #3b82f6;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 30px;
+        }
+        .subnote {
+            font-size: 10px;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .titles-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .titles-scroll::-webkit-scrollbar-track {
+            background: #eef2f8;
+            border-radius: 5px;
+        }
+        .titles-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 5px;
+        }
+        .save-tip {
+            font-size: 10px;
+            text-align: right;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        /* 无前缀组特殊三列布局 */
+        .triple-row-noprefix {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+        .label-col {
+            width: 100px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: #4a5b6e;
+            background: #f8fafd;
+            border-radius: 18px;
+            border: 1px solid #eef2f9;
+        }
+        /* 右侧顶部紧凑组件 */
+        .inline-control-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .inline-product {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafd;
+            padding: 4px 12px;
+            border-radius: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        /* 🔴 商品名称文字：大红+加粗+加大 */
+        .inline-product span {
+            font-weight: 800;
+            color: #d32f2f;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+        .inline-product input {
+            border: none;
+            background: transparent;
+            width: 100px;
+            outline: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .inline-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .inline-date .switch {
+            transform: scale(0.9);
+            margin-left: 2px;
+        }
+        .prefix-tip {
+            font-size: 11px;
+            color: #ff6b4a;
+            background: #fff3ef;
+            padding: 4px 12px;
+            border-radius: 40px;
+            white-space: nowrap;
+        }
+        /* 🔴 醒目的大红色使用说明（加大加粗大红） */
+        .red-note {
+            margin-top: 20px;
+            padding: 16px 14px;
+            background: #fff2f0;
+            border-left: 6px solid #e11d1d;
+            border-radius: 18px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #d32f2f;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(209, 46, 46, 0.15);
+            transition: all 0.1s;
+        }
+        .red-note strong {
+            font-weight: 800;
+            color: #b91c1c;
+        }
+        .red-note .big-icon {
+            font-size: 18px;
+            margin-right: 6px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .red-note p {
+            margin: 6px 0 0 0;
+            font-size: 15px;
+        }
+        .red-note ul {
+            margin: 8px 0 0 18px;
+            padding-left: 0;
+            list-style-type: none;
+        }
+        .red-note li {
+            margin-bottom: 6px;
+            position: relative;
+            padding-left: 20px;
+        }
+        .red-note li::before {
+            content: "⚠️";
+            position: absolute;
+            left: 0;
+            font-size: 13px;
+        }
+        .highlight-red {
+            color: #c62828;
+            background: #ffe6e5;
+            display: inline-block;
+            padding: 0 4px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+        .cargo-note {
+            font-size: 11px;
+            color: #ff6b4a;
+            background: #fff2ef;
+            border-radius: 30px;
+            padding: 2px 12px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- 左侧参数区 -->
+    <div class="left-panel">
+        <div style="margin-bottom: 14px;">
+            <div style="font-weight: 700; font-size: 18px;">📊 飞哥全域保本ROI计算器</div>
+            <div style="font-size: 11px; color: #6c7a8e;">线上+线下净保本ROI · 多标题批量生成 · 自动保存</div>
+        </div>
+
+        <!-- 🆕 货盘佣金率卡片（位于线上/线下结算之上） -->
+        <div class="card" style="margin-bottom: 16px; background: linear-gradient(135deg, #fff9f5 0%, #ffffff 100%); border-left: 4px solid #ff6b4a;">
+            <div class="section-title" style="margin-bottom: 6px;">📦 货盘佣金率</div>
+            <div class="input-group">
+                <div class="input-label"><span>货盘总佣金率</span><span class="unit">%</span></div>
+                <div class="input-wrapper"><input type="number" id="cargoRate" step="any" placeholder="自动分配线上5% / 线下剩余%"><span class="input-suffix">%</span></div>
+            </div>
+            <div class="cargo-note">💡 填写货盘佣金率 → 线上自动设为5%，线下=货盘-5% | 手动修改线上/线下后，货盘自动清空</div>
+        </div>
+
+        <!-- 线上/线下结算卡片 -->
+        <div class="double-card">
+            <div class="half-card">
+                <div class="section-title" style="margin-bottom: 8px;">📱 线上结算</div>
+                <div class="input-group">
+                    <div class="input-label"><span>计划佣金率</span><span class="unit">%</span></div>
+                    <div class="input-wrapper"><input type="number" id="onlineRate" step="any" value="5.0"><span class="input-suffix">%</span></div>
+                </div>
+                <div class="input-group">
+                    <div class="input-label"><span>净退货率</span><span class="unit">%</span></div>
+                    <div class="input-wrapper"><input type="number" id="onlineReturn" step="any" value="20.0"><span class="input-suffix">%</span></div>
+                </div>
+                <div class="input-group">
+                    <div class="input-label"><span>技术服务费</span><span class="unit">%</span></div>
+                    <div class="input-wrapper"><input type="number" id="onlineFee" step="any" value="10.0"><span class="input-suffix">%</span></div>
+                </div>
+            </div>
+            <div class="half-card">
+                <div class="section-title" style="margin-bottom: 8px;">🏬 线下结算</div>
+                <div class="input-group">
+                    <div class="input-label"><span>计划佣金率</span><span class="unit">%</span></div>
+                    <div class="input-wrapper"><input type="number" id="offlineRate" step="any" value="40.0"><span class="input-suffix">%</span></div>
+                </div>
+                <div class="input-group">
+                    <div class="input-label"><span>净退货率</span><span class="unit">%</span></div>
+                    <div class="input-wrapper"><input type="number" id="offlineReturn" step="any" value="6.0"><span class="input-suffix">%</span></div>
+                </div>
+                <div class="subnote" style="margin-top: 6px;">*线下默认无平台费</div>
+            </div>
+        </div>
+
+        <div class="roi-big">
+            <div class="roi-label">🎯 净保本 ROI</div>
+            <div class="roi-number" id="roiValue">2.43</div>
+            <div id="roiDesc" style="font-size: 10px; color:#ff8a6c;"></div>
+        </div>
+
+        <div class="card" style="padding: 10px 14px;">
+            <div class="section-title" style="margin-bottom: 6px;">📈 多倍出价参考 (ROI×倍数)</div>
+            <div class="mult-grid" id="multGrid">
+                <div class="mult-item"><div class="mult-factor">1.05倍</div><div class="mult-value" id="mult1">-</div></div>
+                <div class="mult-item"><div class="mult-factor">1.10倍</div><div class="mult-value" id="mult2">-</div></div>
+                <div class="mult-item"><div class="mult-factor">1.15倍</div><div class="mult-value" id="mult3">-</div></div>
+                <div class="mult-item"><div class="mult-factor">1.20倍</div><div class="mult-value" id="mult4">-</div></div>
+            </div>
+        </div>
+        
+        <!-- 🔴 醒目大红字使用说明 -->
+        <div class="red-note">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <span class="big-icon">🔴</span>
+                <span style="font-size: 17px; font-weight: 800;">【 使用说明 】</span>
+            </div>
+            <ul>
+                <li>线上结算商品： <strong class="highlight-red">需将线下结算佣金改为0</strong></li>
+                <li>线下结算商品： <strong class="highlight-red">需将线上结算佣金改为0</strong></li>
+                <li>线上线下双结算商品： <strong style="background:#ffebe8; padding:2px 6px; border-radius:20px;">按照对应佣金净退货率分别填写即可</strong></li>
+            </ul>
+            <p style="margin-top: 8px; font-size: 14px; border-top: 1px solid #ffc9c7; padding-top: 6px;">💡 提示：佣金或净退货率有变动后，可用右侧最后一行标题快速修改计划名称。</p>
+        </div>
+        <div class="save-tip">✨ 所有修改自动保存，下次打开即恢复</div>
+    </div>
+
+    <!-- 右侧标题生成器 -->
+    <div class="right-panel">
+        <div style="font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <span>📋 计划标题复制</span>
+            <div class="inline-control-group">
+                <div class="inline-product">
+                    <span>商品名称</span>
+                    <input type="text" id="productName" value="清洁刷" placeholder="商品名称">
+                </div>
+                <div class="inline-date">
+                    <span>📅 自动添加今日日期</span>
+                    <label class="switch">
+                        <input type="checkbox" id="copyDateToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="prefix-tip">✦ 前缀字可自定义，位于线下标题左侧</div>
+        </div>
+        <div class="titles-scroll" id="titlesContainer">
+            <!-- 动态渲染6组前缀字 + 线下/线上标题，以及无前缀组 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM 元素
+    const productNameInput = document.getElementById('productName');
+    const dateToggle = document.getElementById('copyDateToggle');
+    const onlineRateInput = document.getElementById('onlineRate');
+    const onlineReturnInput = document.getElementById('onlineReturn');
+    const onlineFeeInput = document.getElementById('onlineFee');
+    const offlineRateInput = document.getElementById('offlineRate');
+    const offlineReturnInput = document.getElementById('offlineReturn');
+    const cargoRateInput = document.getElementById('cargoRate');
+    const roiValueSpan = document.getElementById('roiValue');
+    const roiDescSpan = document.getElementById('roiDesc');
+    const multSpans = {
+        1.05: document.getElementById('mult1'),
+        1.1: document.getElementById('mult2'),
+        1.15: document.getElementById('mult3'),
+        1.2: document.getElementById('mult4')
+    };
+
+    // 六个可自定义前缀字（默认）
+    const DEFAULT_PREFIX = ['可', '改', '抖', '音', '首', '字'];
+    let prefixList = [...DEFAULT_PREFIX];
+
+    // 计算结果
+    let currentROI = 0;
+    let multipliers = { 1.05: 0, 1.1: 0, 1.15: 0, 1.2: 0 };
+    let totalRateDisplay = '';
+    let onlineReturnDisplay = '';
+    let offlineReturnDisplay = '';
+    let validROI = true;
+
+    // 防递归标志：避免货盘联动时触发清空货盘的动作
+    let isCargoUpdating = false;
+
+    // 辅助：格式化百分比（保留一位小数，整数无小数点）
+    function formatPercent(value) {
+        if (value === undefined || isNaN(value)) return '0';
+        let fixed = value.toFixed(1);
+        if (fixed.endsWith('.0')) fixed = fixed.slice(0, -2);
+        return fixed;
+    }
+
+    // 本地存储
+    function saveAllData() {
+        const data = {
+            productName: productNameInput.value,
+            dateToggle: dateToggle.checked,
+            onlineRate: onlineRateInput.value,
+            onlineReturn: onlineReturnInput.value,
+            onlineFee: onlineFeeInput.value,
+            offlineRate: offlineRateInput.value,
+            offlineReturn: offlineReturnInput.value,
+            cargoRate: cargoRateInput.value,    // 新增货盘存储
+            prefixList: prefixList
+        };
+        localStorage.setItem('exitPriceCalculator', JSON.stringify(data));
+    }
+
+    function loadAllData() {
+        const saved = localStorage.getItem('exitPriceCalculator');
+        if (!saved) return;
+        try {
+            const data = JSON.parse(saved);
+            productNameInput.value = data.productName || '清洁刷';
+            dateToggle.checked = data.dateToggle !== undefined ? data.dateToggle : true;
+            onlineRateInput.value = data.onlineRate || '5.0';
+            onlineReturnInput.value = data.onlineReturn || '20.0';
+            onlineFeeInput.value = data.onlineFee || '10.0';
+            offlineRateInput.value = data.offlineRate || '40.0';
+            offlineReturnInput.value = data.offlineReturn || '6.0';
+            if (data.cargoRate !== undefined && data.cargoRate !== '') {
+                cargoRateInput.value = data.cargoRate;
+                // 注意：此处不主动触发联动，因为联动会修改线上/线下值，可能会与存储值冲突。
+                // 但为了业务逻辑一致性：若存储中有货盘且非空，根据货盘重设线上/线下（覆盖存储的线上/线下）
+                // 这样保证货盘联动一致性。调用 applyCargoRateLogic 但避免事件循环
+                if (data.cargoRate !== null && data.cargoRate !== '') {
+                    const cargoVal = parseFloat(data.cargoRate);
+                    if (!isNaN(cargoVal)) {
+                        // 临时禁用联动标志
+                        isCargoUpdating = true;
+                        onlineRateInput.value = 5;
+                        const offlineNew = cargoVal - 5;
+                        offlineRateInput.value = offlineNew.toFixed(1);
+                        isCargoUpdating = false;
+                    }
+                }
+            } else {
+                cargoRateInput.value = '';
+            }
+            if (data.prefixList && Array.isArray(data.prefixList)) {
+                const savedPrefix = data.prefixList.slice(0, 6);
+                while (savedPrefix.length < 6) savedPrefix.push(DEFAULT_PREFIX[savedPrefix.length]);
+                prefixList = savedPrefix;
+            } else {
+                prefixList = [...DEFAULT_PREFIX];
+            }
+        } catch(e) { console.warn(e); }
+    }
+
+    // 核心计算
+    function calculateROI() {
+        const onRate = parseFloat(onlineRateInput.value) || 0;
+        const onReturn = parseFloat(onlineReturnInput.value) || 0;
+        const onFee = parseFloat(onlineFeeInput.value) || 0;
+        const offRate = parseFloat(offlineRateInput.value) || 0;
+        const offReturn = parseFloat(offlineReturnInput.value) || 0;
+
+        const onlineEffective = (onRate / 100) * (1 - onFee / 100) * (1 - onReturn / 100);
+        const offlineEffective = (offRate / 100) * (1 - offReturn / 100);
+        const totalEff = onlineEffective + offlineEffective;
+
+        if (totalEff <= 0) {
+            validROI = false;
+            currentROI = 0;
+            roiValueSpan.innerText = '∞';
+            roiDescSpan.innerText = '有效佣金率为0，无法保本';
+            multipliers = { 1.05: 0, 1.1: 0, 1.15: 0, 1.2: 0 };
+            for (let k in multSpans) multSpans[k].innerText = '-';
+            totalRateDisplay = formatPercent(onRate + offRate);
+            onlineReturnDisplay = formatPercent(onReturn);
+            offlineReturnDisplay = formatPercent(offReturn);
+            return;
+        }
+        validROI = true;
+        const breakeven = 1 / totalEff;
+        currentROI = breakeven;
+        roiValueSpan.innerText = breakeven.toFixed(2);
+        roiDescSpan.innerText = '';
+        multipliers = {
+            1.05: breakeven * 1.05,
+            1.1: breakeven * 1.1,
+            1.15: breakeven * 1.15,
+            1.2: breakeven * 1.2
+        };
+        multSpans[1.05].innerText = multipliers[1.05].toFixed(2);
+        multSpans[1.1].innerText = multipliers[1.1].toFixed(2);
+        multSpans[1.15].innerText = multipliers[1.15].toFixed(2);
+        multSpans[1.2].innerText = multipliers[1.2].toFixed(2);
+        
+        totalRateDisplay = formatPercent(onRate + offRate);
+        onlineReturnDisplay = formatPercent(onReturn);
+        offlineReturnDisplay = formatPercent(offReturn);
+    }
+
+    // 🆕 货盘佣金率联动逻辑: 根据货盘设置线上=5，线下=货盘-5
+    function applyCargoRate(cargoValue) {
+        if (isCargoUpdating) return; // 避免递归
+        if (cargoValue === undefined || cargoValue === null || cargoValue === '') return;
+        const cargoNum = parseFloat(cargoValue);
+        if (isNaN(cargoNum)) return;
+        
+        isCargoUpdating = true;
+        // 线上固定5%
+        onlineRateInput.value = 5.0;
+        // 线下 = 货盘 - 5
+        let offlineNew = cargoNum - 5;
+        // 保留一位小数，允许负数（业务中极少，但按公式）
+        offlineRateInput.value = offlineNew.toFixed(1);
+        isCargoUpdating = false;
+        
+        // 触发一次手动保存与刷新（因为值改变了）
+        refreshAll();
+    }
+    
+    // 清空货盘输入框（当用户手动修改线上/线下佣金时调用）
+    function clearCargoRateIfNeeded(source) {
+        // 如果当前是因为货盘联动而修改线上/线下，则不清空货盘
+        if (isCargoUpdating) return;
+        // 检查是否真的发生了变化（区别于初始化时的不必要清空）
+        const currentCargo = cargoRateInput.value;
+        if (currentCargo !== null && currentCargo !== undefined && currentCargo !== '') {
+            cargoRateInput.value = '';
+            // 清空后保存数据
+            saveAllData();
+            // 无需额外刷新，因为 refreshAll 会由外部事件调用，但为了保证界面一致性可以调用一次
+            // 但外部 change 会触发 refreshAll，这里避免重复。
+        }
+    }
+
+    function getDatePrefix() {
+        if (!dateToggle.checked) return '';
+        const now = new Date();
+        return `${now.getMonth()+1}.${now.getDate()}`;
+    }
+
+    // 构建标题：顺序 = 前缀字 + 日期 + 渠道 + 总佣金率 + 退 + 保 + 出价系列 + 商品名称（可选）
+    function buildTitle(channel, prefix, ignoreDate = false) {
+        if (!validROI) return '【ROI无效】';
+        const product = productNameInput.value.trim();
+        const dateStr = ignoreDate ? '' : getDatePrefix();
+        const returnRate = (channel === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
+        const roiFixed = currentROI.toFixed(2);
+        const mult1 = multipliers[1.05].toFixed(2);
+        const mult2 = multipliers[1.1].toFixed(2);
+        const mult3 = multipliers[1.15].toFixed(2);
+        const mult4 = multipliers[1.2].toFixed(2);
+        let core = `${prefix}${dateStr}${channel}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        if (product !== '') {
+            core += `，${product}`;
+        }
+        return core;
+    }
+
+    // 无前缀无日期标题（不包含商品名称）
+    function buildNoPrefixNoDateTitle(channel) {
+        if (!validROI) return '【ROI无效】';
+        const returnRate = (channel === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
+        const roiFixed = currentROI.toFixed(2);
+        const mult1 = multipliers[1.05].toFixed(2);
+        const mult2 = multipliers[1.1].toFixed(2);
+        const mult3 = multipliers[1.15].toFixed(2);
+        const mult4 = multipliers[1.2].toFixed(2);
+        return `${channel}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+    }
+
+    // 渲染所有标题组
+    function renderTitles() {
+        const container = document.getElementById('titlesContainer');
+        if (!container) return;
+        let html = '';
+        for (let i = 0; i < prefixList.length; i++) {
+            const currentPrefix = prefixList[i];
+            const offlineTitle = buildTitle('线下', currentPrefix, false);
+            const onlineTitle = buildTitle('线上', currentPrefix, false);
+            html += `
+                <div class="prefix-group" data-prefix-index="${i}">
+                    <div class="triple-row">
+                        <div class="prefix-col">
+                            <input type="text" class="prefix-input" data-idx="${i}" value="${escapeHtml(currentPrefix)}" maxlength="10" placeholder="前缀字">
+                        </div>
+                        <div class="title-col">
+                            <div class="title-text" id="title_offline_${i}">${escapeHtml(offlineTitle)}</div>
+                            <button class="copy-btn-sm" data-copy="title_offline_${i}">📋 复制线下标题</button>
+                        </div>
+                        <div class="title-col">
+                            <div class="title-text" id="title_online_${i}">${escapeHtml(onlineTitle)}</div>
+                            <button class="copy-btn-sm" data-copy="title_online_${i}">📋 复制线上标题</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        const plainOffline = buildNoPrefixNoDateTitle('线下');
+        const plainOnline = buildNoPrefixNoDateTitle('线上');
+        html += `
+            <div class="prefix-group" style="background:#ffffff;">
+                <div class="triple-row-noprefix">
+                    <div class="label-col">计划标题调整</div>
+                    <div class="title-col">
+                        <div class="title-text" id="title_plain_offline">${escapeHtml(plainOffline)}</div>
+                        <button class="copy-btn-sm" data-copy="title_plain_offline">📋 复制线下标题</button>
+                    </div>
+                    <div class="title-col">
+                        <div class="title-text" id="title_plain_online">${escapeHtml(plainOnline)}</div>
+                        <button class="copy-btn-sm" data-copy="title_plain_online">📋 复制线上标题</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+
+        document.querySelectorAll('[data-copy]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetId = btn.getAttribute('data-copy');
+                const textElem = document.getElementById(targetId);
+                if (textElem) {
+                    copyToClipboard(textElem.innerText);
+                }
+            });
+        });
+        document.querySelectorAll('.prefix-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const idx = parseInt(input.getAttribute('data-idx'));
+                if (!isNaN(idx) && idx >= 0 && idx < prefixList.length) {
+                    let newVal = input.value.trim();
+                    if (newVal === '') newVal = ' ';
+                    prefixList[idx] = newVal;
+                    updateDynamicTitles();
+                    saveAllData();
+                }
+            });
+        });
+    }
+
+    function updateDynamicTitles() {
+        if (!validROI) {
+            for (let i = 0; i < prefixList.length; i++) {
+                const offlineSpan = document.getElementById(`title_offline_${i}`);
+                const onlineSpan = document.getElementById(`title_online_${i}`);
+                if (offlineSpan) offlineSpan.innerText = '【ROI无效】';
+                if (onlineSpan) onlineSpan.innerText = '【ROI无效】';
+            }
+            const plainOffline = document.getElementById('title_plain_offline');
+            const plainOnline = document.getElementById('title_plain_online');
+            if (plainOffline) plainOffline.innerText = '【ROI无效】';
+            if (plainOnline) plainOnline.innerText = '【ROI无效】';
+            return;
+        }
+        for (let i = 0; i < prefixList.length; i++) {
+            const prefix = prefixList[i];
+            const offlineSpan = document.getElementById(`title_offline_${i}`);
+            const onlineSpan = document.getElementById(`title_online_${i}`);
+            if (offlineSpan) offlineSpan.innerText = buildTitle('线下', prefix, false);
+            if (onlineSpan) onlineSpan.innerText = buildTitle('线上', prefix, false);
+        }
+        const plainOffline = document.getElementById('title_plain_offline');
+        const plainOnline = document.getElementById('title_plain_online');
+        if (plainOffline) plainOffline.innerText = buildNoPrefixNoDateTitle('线下');
+        if (plainOnline) plainOnline.innerText = buildNoPrefixNoDateTitle('线上');
+    }
+
+    async function copyToClipboard(text) {
+        if (!text || text === '【ROI无效】') {
+            showToast('标题无效，无法复制');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast('✅ 已复制到剪贴板');
+        } catch (err) {
+            fallbackCopy(text);
+        }
+    }
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (success) showToast('✅ 已复制');
+        else showToast('❌ 复制失败');
+    }
+    function showToast(msg) {
+        const toast = document.createElement('div');
+        toast.innerText = msg;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '40px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = '#1e2f3a';
+        toast.style.color = '#fff';
+        toast.style.padding = '6px 20px';
+        toast.style.borderRadius = '40px';
+        toast.style.fontSize = '12px';
+        toast.style.zIndex = '9999';
+        toast.style.pointerEvents = 'none';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1600);
+    }
+    function escapeHtml(str) { return str; }
+
+    function refreshAll() {
+        calculateROI();
+        updateDynamicTitles();
+        saveAllData();
+    }
+
+    function bindInputEvents() {
+        const productInput = document.getElementById('productName');
+        const dateCb = document.getElementById('copyDateToggle');
+        // 基础刷新事件
+        const generalInputs = [productInput, dateCb, onlineReturnInput, onlineFeeInput, offlineReturnInput];
+        generalInputs.forEach(inp => {
+            if (!inp) return;
+            inp.removeEventListener('input', refreshAll);
+            inp.removeEventListener('change', refreshAll);
+            inp.addEventListener('input', refreshAll);
+            inp.addEventListener('change', refreshAll);
+        });
+        
+        // 线上佣金率专用：手动修改时清空货盘 + 刷新
+        onlineRateInput.removeEventListener('input', handleOnlineRateChange);
+        onlineRateInput.addEventListener('input', handleOnlineRateChange);
+        // 线下佣金率专用
+        offlineRateInput.removeEventListener('input', handleOfflineRateChange);
+        offlineRateInput.addEventListener('input', handleOfflineRateChange);
+        
+        // 货盘佣金率监听
+        cargoRateInput.removeEventListener('input', handleCargoChange);
+        cargoRateInput.addEventListener('input', handleCargoChange);
+    }
+    
+    function handleOnlineRateChange() {
+        if (!isCargoUpdating) clearCargoRateIfNeeded('online');
+        refreshAll();
+    }
+    function handleOfflineRateChange() {
+        if (!isCargoUpdating) clearCargoRateIfNeeded('offline');
+        refreshAll();
+    }
+    function handleCargoChange(e) {
+        const val = e.target.value;
+        if (val === null || val === undefined || val === '') {
+            // 货盘为空，不做联动
+            return;
+        }
+        const num = parseFloat(val);
+        if (!isNaN(num)) {
+            applyCargoRate(num);
+        }
+    }
+
+    function init() {
+        loadAllData();
+        calculateROI();
+        renderTitles();
+        updateDynamicTitles();
+        bindInputEvents();
+        saveAllData();
+    }
+    init();
+</script>
+</body>
 </html>
