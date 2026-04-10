@@ -587,7 +587,7 @@
     <!-- 右侧标题生成器（单标题） -->
     <div class="right-panel">
         <div style="font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <span>📋 计划标题复制 <span id="currentTypeBadge" class="type-badge">类型: 线下</span></span>
+            <span>📋 计划标题复制 <span id="currentTypeBadge" class="type-badge">类型: 隔日</span></span>
             <div class="inline-control-group">
                 <div class="inline-product">
                     <span>商品名称</span>
@@ -635,8 +635,8 @@
     const DEFAULT_PREFIX = ['可', '改', '抖', '音', '首', '字'];
     let prefixList = [...DEFAULT_PREFIX];
 
-    // 当前标题类型：'隔日', '线上', '非隔日' (默认兼容旧数据设为'线下'但会转为'隔日'样式)
-    let currentDisplayType = '隔日';   // 默认隔日，因为多数为货盘
+    // 当前标题类型：'隔日', '线上', '非隔日'
+    let currentDisplayType = '隔日';
 
     // 计算结果
     let currentROI = 0;
@@ -709,7 +709,6 @@
             if (data.currentDisplayType && ['隔日','线上','非隔日'].includes(data.currentDisplayType)) {
                 currentDisplayType = data.currentDisplayType;
             } else {
-                // 兼容旧数据：根据线下佣金是否为0推断
                 const offRate = parseFloat(offlineRateInput.value) || 0;
                 if (offRate === 0) currentDisplayType = '线上';
                 else currentDisplayType = '隔日';
@@ -794,13 +793,9 @@
     function parseProductInfoFromText(rawText) {
         let text = rawText.trim();
         if (!text) return null;
-        // 将换行符替换为空格，便于处理多行
         text = text.replace(/\r?\n/g, ' ').replace(/\t+/g, ' ').replace(/\s+/g, ' ').trim();
-        // 匹配模式: 商品名称 + 价格区间(可选) + 关键词(隔日/线上/非隔日) + 数字
-        // 关键词支持：隔日、线上、非隔日
         let match = text.match(/^(.*?)\s*[¥￥]?\s*[\d.]+(?:\s*[~\-]\s*[¥￥]?\s*[\d.]+)?\s*(隔日|线上|非隔日)(\d+(?:\.\d+)?)/);
         if (!match) {
-            // 尝试按空白分割
             let parts = text.split(/\s+/);
             if (parts.length >= 2) {
                 let lastPart = parts[parts.length-1];
@@ -824,7 +819,7 @@
         return { productName: productNameRaw, type, value };
     }
 
-    // 解析并应用（新逻辑）
+    // 解析并应用
     function applyParseFromInput() {
         const rawText = parseInput.value;
         if (!rawText.trim()) {
@@ -842,9 +837,7 @@
             return;
         }
         productNameInput.value = productName;
-        // 根据类型设置佣金和显示类型
         if (type === '隔日' || type === '非隔日') {
-            // 货盘逻辑
             const cargoVal = value;
             if (cargoVal <= 5 && cargoVal > 0) {
                 showToast(`⚠️ 货盘佣金率${cargoVal}%小于等于5%，线下佣金将≤0，请检查`);
@@ -855,7 +848,7 @@
             offlineRateInput.value = offlineNew.toFixed(1);
             cargoRateInput.value = cargoVal;
             isCargoUpdating = false;
-            currentDisplayType = type;  // '隔日' 或 '非隔日'
+            currentDisplayType = type;
             showToast(`✅ 应用成功：商品“${productName}”，${type}佣金率${cargoVal}% → 线上5% / 线下${offlineNew.toFixed(1)}%`);
         } 
         else if (type === '线上') {
@@ -885,12 +878,11 @@
         return `${now.getMonth()+1}.${now.getDate()}`;
     }
 
-    // 构建标题：channel 为 currentDisplayType (隔日/线上/非隔日)
+    // 构建标题（带前缀）
     function buildTitle(prefix, ignoreDate = false) {
         if (!validROI) return '【ROI无效】';
         const product = productNameInput.value.trim();
         const dateStr = ignoreDate ? '' : getDatePrefix();
-        // 退货率：如果渠道为线上则用线上退货率，否则用线下退货率
         const returnRate = (currentDisplayType === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
         const roiFixed = currentROI.toFixed(2);
         const mult1 = multipliers[1.05].toFixed(2);
@@ -904,15 +896,21 @@
         return core;
     }
 
+    // 构建无前缀标题（计划标题调整行）- 同样需要加上商品名称
     function buildNoPrefixNoDateTitle() {
         if (!validROI) return '【ROI无效】';
+        const product = productNameInput.value.trim();
         const returnRate = (currentDisplayType === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
         const roiFixed = currentROI.toFixed(2);
         const mult1 = multipliers[1.05].toFixed(2);
         const mult2 = multipliers[1.1].toFixed(2);
         const mult3 = multipliers[1.15].toFixed(2);
         const mult4 = multipliers[1.2].toFixed(2);
-        return `${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        let core = `${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        if (product !== '') {
+            core += `，${product}`;
+        }
+        return core;
     }
 
     // 渲染标题组（单标题）
@@ -1069,11 +1067,6 @@
         onlineRateInput.addEventListener('input', () => { clearCargoRateIfNeeded(); refreshAll(); });
         offlineRateInput.addEventListener('input', () => { 
             clearCargoRateIfNeeded(); 
-            // 如果线下佣金变为0且当前类型不是线上，自动切换类型为线上？不自动切换，保留用户设定，但可提示
-            const offRate = parseFloat(offlineRateInput.value) || 0;
-            if (offRate === 0 && currentDisplayType !== '线上') {
-                // 可选提示，但不自动改
-            }
             refreshAll();
         });
         cargoRateInput.addEventListener('input', (e) => {
