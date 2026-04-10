@@ -167,7 +167,7 @@
             margin-top: 3px;
         }
 
-        /* 右侧标题组 - 三列并排 */
+        /* 右侧标题组 - 两列布局（前缀+主标题） */
         .prefix-group {
             background: #fff;
             border-radius: 20px;
@@ -176,7 +176,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
             border: 1px solid #eef2f8;
         }
-        .triple-row {
+        .double-row {
             display: flex;
             gap: 12px;
             align-items: stretch;
@@ -224,7 +224,6 @@
             word-break: break-all;
             line-height: 1.4;
             margin-bottom: 10px;
-            /* 移除了 min-height，恢复原始高度 */
         }
         .copy-btn-sm {
             background: #ff6b4a;
@@ -241,14 +240,6 @@
         .copy-btn-sm:active {
             transform: scale(0.97);
             background: #e55a3c;
-        }
-        .copy-btn-sm.disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .copy-btn-sm.disabled:active {
-            transform: none;
         }
 
         .subnote {
@@ -274,8 +265,8 @@
             color: #94a3b8;
             margin-top: 8px;
         }
-        /* 无前缀组特殊三列布局 */
-        .triple-row-noprefix {
+        /* 无前缀组特殊两列布局 */
+        .double-row-noprefix {
             display: flex;
             gap: 12px;
             align-items: stretch;
@@ -501,6 +492,14 @@
         .help-link:active {
             transform: scale(0.96);
         }
+        .type-badge {
+            font-size: 10px;
+            background: #eef2ff;
+            color: #3b82f6;
+            border-radius: 30px;
+            padding: 2px 8px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -526,9 +525,9 @@
             <div class="smart-parse-area">
                 <div class="smart-label">
                     <span>🧠 粘贴并应用参数</span>
-                    <span style="font-size: 10px; color:#ff8a6c;">支持“隔日56”、“线上32”等多种格式</span>
+                    <span style="font-size: 10px; color:#ff8a6c;">支持“隔日”、“线上”、“非隔日”等多种格式</span>
                 </div>
-                <textarea id="parseInput" rows="2" class="smart-input" placeholder="请先复制商品信息，然后粘贴到此处（Ctrl+V），再点击下方按钮解析&#10;例如：&#10;魅蓝沐浴露	9.99	隔日56&#10;宝宝鞋	9.9	线上32"></textarea>
+                <textarea id="parseInput" rows="2" class="smart-input" placeholder="请先复制商品信息，然后粘贴到此处（Ctrl+V），再点击下方按钮解析&#10;例如：&#10;眼镜防滑圈	9.9-25.9	隔日67&#10;破窗器	19.9-29.9	线上62&#10;雪糕模具	12.9	非隔日50"></textarea>
                 <div class="button-group">
                     <button id="parseBtn" class="parse-btn">🔍 解析并应用参数</button>
                     <button id="clearParseBtn" class="clear-btn">🗑️ 清空</button>
@@ -585,10 +584,10 @@
         <div class="save-tip">✨ 所有修改自动保存，下次打开即恢复</div>
     </div>
 
-    <!-- 右侧标题生成器 -->
+    <!-- 右侧标题生成器（单标题） -->
     <div class="right-panel">
         <div style="font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <span>📋 计划标题复制</span>
+            <span>📋 计划标题复制 <span id="currentTypeBadge" class="type-badge">类型: 线下</span></span>
             <div class="inline-control-group">
                 <div class="inline-product">
                     <span>商品名称</span>
@@ -602,10 +601,10 @@
                     </label>
                 </div>
             </div>
-            <div class="prefix-tip">✦ 前缀字可自定义，位于线下标题左侧</div>
+            <div class="prefix-tip">✦ 前缀字可自定义，位于标题左侧</div>
         </div>
         <div class="titles-scroll" id="titlesContainer">
-            <!-- 动态渲染6组前缀字 + 线下/线上标题，以及无前缀组 -->
+            <!-- 动态渲染6组前缀字 + 主标题，以及无前缀组 -->
         </div>
     </div>
 </div>
@@ -625,6 +624,7 @@
     const clearParseBtn = document.getElementById('clearParseBtn');
     const roiValueSpan = document.getElementById('roiValue');
     const roiDescSpan = document.getElementById('roiDesc');
+    const currentTypeBadge = document.getElementById('currentTypeBadge');
     const multSpans = {
         1.05: document.getElementById('mult1'),
         1.1: document.getElementById('mult2'),
@@ -635,6 +635,9 @@
     // 六个可自定义前缀字（默认）
     const DEFAULT_PREFIX = ['可', '改', '抖', '音', '首', '字'];
     let prefixList = [...DEFAULT_PREFIX];
+
+    // 当前标题类型：'隔日', '线上', '非隔日' (默认兼容旧数据设为'线下'但会转为'隔日'样式)
+    let currentDisplayType = '隔日';   // 默认隔日，因为多数为货盘
 
     // 计算结果
     let currentROI = 0;
@@ -666,7 +669,8 @@
             offlineRate: offlineRateInput.value,
             offlineReturn: offlineReturnInput.value,
             cargoRate: cargoRateInput.value,
-            prefixList: prefixList
+            prefixList: prefixList,
+            currentDisplayType: currentDisplayType
         };
         localStorage.setItem('exitPriceCalculator', JSON.stringify(data));
     }
@@ -703,7 +707,20 @@
             } else {
                 prefixList = [...DEFAULT_PREFIX];
             }
+            if (data.currentDisplayType && ['隔日','线上','非隔日'].includes(data.currentDisplayType)) {
+                currentDisplayType = data.currentDisplayType;
+            } else {
+                // 兼容旧数据：根据线下佣金是否为0推断
+                const offRate = parseFloat(offlineRateInput.value) || 0;
+                if (offRate === 0) currentDisplayType = '线上';
+                else currentDisplayType = '隔日';
+            }
+            updateTypeBadge();
         } catch(e) { console.warn(e); }
+    }
+
+    function updateTypeBadge() {
+        currentTypeBadge.innerText = `类型: ${currentDisplayType}`;
     }
 
     // 核心计算
@@ -774,17 +791,21 @@
         }
     }
 
-    // 智能解析函数（直接从textarea读取，无剪贴板读取）
-    function parseProductInfoFromText(text) {
-        let raw = text.trim();
-        if (!raw) return null;
-        raw = raw.replace(/\t+/g, ' ').replace(/\s+/g, ' ').trim();
-        let match = raw.match(/^(.*?)\s*[¥￥]?\s*[\d.]+(?:\s*[~\-]\s*[¥￥]?\s*[\d.]+)?\s*(隔日|线上)(\d+(?:\.\d+)?)/);
+    // 增强解析函数：支持换行、多种分隔符、非隔日关键词
+    function parseProductInfoFromText(rawText) {
+        let text = rawText.trim();
+        if (!text) return null;
+        // 将换行符替换为空格，便于处理多行
+        text = text.replace(/\r?\n/g, ' ').replace(/\t+/g, ' ').replace(/\s+/g, ' ').trim();
+        // 匹配模式: 商品名称 + 价格区间(可选) + 关键词(隔日/线上/非隔日) + 数字
+        // 关键词支持：隔日、线上、非隔日
+        let match = text.match(/^(.*?)\s*[¥￥]?\s*[\d.]+(?:\s*[~\-]\s*[¥￥]?\s*[\d.]+)?\s*(隔日|线上|非隔日)(\d+(?:\.\d+)?)/);
         if (!match) {
-            let parts = raw.split(/\s+/);
+            // 尝试按空白分割
+            let parts = text.split(/\s+/);
             if (parts.length >= 2) {
                 let lastPart = parts[parts.length-1];
-                let typeMatch = lastPart.match(/(隔日|线上)(\d+(?:\.\d+)?)/);
+                let typeMatch = lastPart.match(/(隔日|线上|非隔日)(\d+(?:\.\d+)?)/);
                 if (typeMatch) {
                     let productCandidate = parts.slice(0, -1).join(' ');
                     return {
@@ -804,7 +825,7 @@
         return { productName: productNameRaw, type, value };
     }
 
-    // 解析并应用（无任何剪贴板读取，纯手动输入框内容）
+    // 解析并应用（新逻辑）
     function applyParseFromInput() {
         const rawText = parseInput.value;
         if (!rawText.trim()) {
@@ -813,7 +834,7 @@
         }
         const parsed = parseProductInfoFromText(rawText);
         if (!parsed) {
-            showToast('⚠️ 提取失败，请检查格式是否正确（例如：商品名 隔日56 或 商品名 线上32）');
+            showToast('⚠️ 提取失败，请检查格式是否正确（例如：商品名 隔日56 或 商品名 线上32 或 商品名 非隔日50）');
             return;
         }
         const { productName, type, value } = parsed;
@@ -822,7 +843,9 @@
             return;
         }
         productNameInput.value = productName;
-        if (type === '隔日') {
+        // 根据类型设置佣金和显示类型
+        if (type === '隔日' || type === '非隔日') {
+            // 货盘逻辑
             const cargoVal = value;
             if (cargoVal <= 5 && cargoVal > 0) {
                 showToast(`⚠️ 货盘佣金率${cargoVal}%小于等于5%，线下佣金将≤0，请检查`);
@@ -833,7 +856,8 @@
             offlineRateInput.value = offlineNew.toFixed(1);
             cargoRateInput.value = cargoVal;
             isCargoUpdating = false;
-            showToast(`✅ 应用成功：商品“${productName}”，货盘佣金率${cargoVal}% → 线上5% / 线下${offlineNew.toFixed(1)}%`);
+            currentDisplayType = type;  // '隔日' 或 '非隔日'
+            showToast(`✅ 应用成功：商品“${productName}”，${type}佣金率${cargoVal}% → 线上5% / 线下${offlineNew.toFixed(1)}%`);
         } 
         else if (type === '线上') {
             isCargoUpdating = true;
@@ -841,15 +865,16 @@
             offlineRateInput.value = 0;
             cargoRateInput.value = '';
             isCargoUpdating = false;
+            currentDisplayType = '线上';
             showToast(`✅ 应用成功：商品“${productName}”，线上佣金率${value}% / 线下0%`);
         } else {
             showToast('⚠️ 未知类型');
             return;
         }
+        updateTypeBadge();
         refreshAll();
     }
 
-    // 清空输入框内容
     function clearParseInput() {
         parseInput.value = '';
         showToast('🧹 已清空输入框，可粘贴新的参数');
@@ -861,115 +886,87 @@
         return `${now.getMonth()+1}.${now.getDate()}`;
     }
 
-    // 核心修改：如果线下佣金为0，则线下标题返回空字符串
-    function buildTitle(channel, prefix, ignoreDate = false) {
+    // 构建标题：channel 为 currentDisplayType (隔日/线上/非隔日)
+    function buildTitle(prefix, ignoreDate = false) {
         if (!validROI) return '【ROI无效】';
-        // 线下佣金为0时，线下标题显示为空
-        if (channel === '线下') {
-            const offRate = parseFloat(offlineRateInput.value) || 0;
-            if (offRate === 0) {
-                return '';   // 空字符串，标题区域显示空白
-            }
-        }
         const product = productNameInput.value.trim();
         const dateStr = ignoreDate ? '' : getDatePrefix();
-        const returnRate = (channel === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
+        // 退货率：如果渠道为线上则用线上退货率，否则用线下退货率
+        const returnRate = (currentDisplayType === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
         const roiFixed = currentROI.toFixed(2);
         const mult1 = multipliers[1.05].toFixed(2);
         const mult2 = multipliers[1.1].toFixed(2);
         const mult3 = multipliers[1.15].toFixed(2);
         const mult4 = multipliers[1.2].toFixed(2);
-        let core = `${prefix}${dateStr}${channel}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        let core = `${prefix}${dateStr}${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
         if (product !== '') {
             core += `，${product}`;
         }
         return core;
     }
 
-    function buildNoPrefixNoDateTitle(channel) {
+    function buildNoPrefixNoDateTitle() {
         if (!validROI) return '【ROI无效】';
-        // 线下佣金为0时，线下标题显示为空
-        if (channel === '线下') {
-            const offRate = parseFloat(offlineRateInput.value) || 0;
-            if (offRate === 0) {
-                return '';
-            }
-        }
-        const returnRate = (channel === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
+        const returnRate = (currentDisplayType === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
         const roiFixed = currentROI.toFixed(2);
         const mult1 = multipliers[1.05].toFixed(2);
         const mult2 = multipliers[1.1].toFixed(2);
         const mult3 = multipliers[1.15].toFixed(2);
         const mult4 = multipliers[1.2].toFixed(2);
-        return `${channel}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        return `${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
     }
 
-    // 渲染标题组（线下标题为空时显示占位符，复制按钮禁用样式）
+    // 渲染标题组（单标题）
     function renderTitles() {
         const container = document.getElementById('titlesContainer');
         if (!container) return;
         let html = '';
         for (let i = 0; i < prefixList.length; i++) {
             const currentPrefix = prefixList[i];
-            const offlineTitle = buildTitle('线下', currentPrefix, false);
-            const onlineTitle = buildTitle('线上', currentPrefix, false);
-            // 线下标题为空时，给按钮添加禁用样式，并阻止复制
-            const isOfflineEmpty = (offlineTitle === '');
+            const title = buildTitle(currentPrefix, false);
             html += `
                 <div class="prefix-group" data-prefix-index="${i}">
-                    <div class="triple-row">
+                    <div class="double-row">
                         <div class="prefix-col">
                             <input type="text" class="prefix-input" data-idx="${i}" value="${escapeHtml(currentPrefix)}" maxlength="10" placeholder="前缀字">
                         </div>
                         <div class="title-col">
-                            <div class="title-text" id="title_offline_${i}" ${isOfflineEmpty ? 'style="color:#cbd5e1; font-style:italic;"' : ''}>${isOfflineEmpty ? '（线下佣金为0，无标题）' : escapeHtml(offlineTitle)}</div>
-                            <button class="copy-btn-sm ${isOfflineEmpty ? 'disabled' : ''}" data-copy="title_offline_${i}" ${isOfflineEmpty ? 'disabled' : ''}>📋 复制线下标题</button>
-                        </div>
-                        <div class="title-col">
-                            <div class="title-text" id="title_online_${i}">${escapeHtml(onlineTitle)}</div>
-                            <button class="copy-btn-sm" data-copy="title_online_${i}">📋 复制线上标题</button>
+                            <div class="title-text" id="title_main_${i}">${escapeHtml(title)}</div>
+                            <button class="copy-btn-sm" data-copy="title_main_${i}">📋 复制标题</button>
                         </div>
                     </div>
                 </div>
             `;
         }
-        const plainOffline = buildNoPrefixNoDateTitle('线下');
-        const plainOnline = buildNoPrefixNoDateTitle('线上');
-        const isPlainOfflineEmpty = (plainOffline === '');
+        const plainTitle = buildNoPrefixNoDateTitle();
         html += `
             <div class="prefix-group" style="background:#ffffff;">
-                <div class="triple-row-noprefix">
+                <div class="double-row-noprefix">
                     <div class="label-col">计划标题调整</div>
                     <div class="title-col">
-                        <div class="title-text" id="title_plain_offline" ${isPlainOfflineEmpty ? 'style="color:#cbd5e1; font-style:italic;"' : ''}>${isPlainOfflineEmpty ? '（线下佣金为0，无标题）' : escapeHtml(plainOffline)}</div>
-                        <button class="copy-btn-sm ${isPlainOfflineEmpty ? 'disabled' : ''}" data-copy="title_plain_offline" ${isPlainOfflineEmpty ? 'disabled' : ''}>📋 复制线下标题</button>
-                    </div>
-                    <div class="title-col">
-                        <div class="title-text" id="title_plain_online">${escapeHtml(plainOnline)}</div>
-                        <button class="copy-btn-sm" data-copy="title_plain_online">📋 复制线上标题</button>
+                        <div class="title-text" id="title_plain_main">${escapeHtml(plainTitle)}</div>
+                        <button class="copy-btn-sm" data-copy="title_plain_main">📋 复制标题</button>
                     </div>
                 </div>
             </div>
         `;
         container.innerHTML = html;
-        // 绑定复制事件（需排除禁用按钮）
+        // 绑定复制事件
         document.querySelectorAll('[data-copy]').forEach(btn => {
-            // 如果按钮被禁用，不绑定事件
-            if (btn.disabled) return;
             btn.addEventListener('click', (e) => {
                 const targetId = btn.getAttribute('data-copy');
                 const textElem = document.getElementById(targetId);
                 if (textElem) {
                     let text = textElem.innerText;
-                    // 如果是占位符文本，则提示不可复制
-                    if (text === '（线下佣金为0，无标题）' || text === '') {
-                        showToast('⚠️ 线下佣金为0，无需复制线下标题');
+                    if (text === '【ROI无效】') {
+                        showToast('标题无效，无法复制');
                         return;
                     }
                     copyToClipboard(text);
                 }
             });
         });
+        // 绑定前缀输入事件
         document.querySelectorAll('.prefix-input').forEach(input => {
             input.addEventListener('input', (e) => {
                 const idx = parseInt(input.getAttribute('data-idx'));
@@ -987,78 +984,25 @@
     function updateDynamicTitles() {
         if (!validROI) {
             for (let i = 0; i < prefixList.length; i++) {
-                const offSpan = document.getElementById(`title_offline_${i}`);
-                const onSpan = document.getElementById(`title_online_${i}`);
-                if (offSpan) offSpan.innerText = '【ROI无效】';
-                if (onSpan) onSpan.innerText = '【ROI无效】';
+                const span = document.getElementById(`title_main_${i}`);
+                if (span) span.innerText = '【ROI无效】';
             }
-            const plainOff = document.getElementById('title_plain_offline');
-            const plainOn = document.getElementById('title_plain_online');
-            if (plainOff) plainOff.innerText = '【ROI无效】';
-            if (plainOn) plainOn.innerText = '【ROI无效】';
+            const plainSpan = document.getElementById('title_plain_main');
+            if (plainSpan) plainSpan.innerText = '【ROI无效】';
             return;
         }
-        const offRate = parseFloat(offlineRateInput.value) || 0;
-        const isOfflineZero = (offRate === 0);
         for (let i = 0; i < prefixList.length; i++) {
             const prefix = prefixList[i];
-            const offlineTitle = buildTitle('线下', prefix, false);
-            const onlineTitle = buildTitle('线上', prefix, false);
-            const offSpan = document.getElementById(`title_offline_${i}`);
-            const onSpan = document.getElementById(`title_online_${i}`);
-            if (offSpan) {
-                if (isOfflineZero) {
-                    offSpan.innerText = '（线下佣金为0，无标题）';
-                    offSpan.style.color = '#cbd5e1';
-                    offSpan.style.fontStyle = 'italic';
-                } else {
-                    offSpan.innerText = offlineTitle;
-                    offSpan.style.color = '';
-                    offSpan.style.fontStyle = '';
-                }
-            }
-            if (onSpan) onSpan.innerText = onlineTitle;
-            // 更新对应按钮的禁用状态
-            const btn = document.querySelector(`.prefix-group[data-prefix-index="${i}"] .copy-btn-sm:first-of-type`);
-            if (btn) {
-                if (isOfflineZero) {
-                    btn.disabled = true;
-                    btn.classList.add('disabled');
-                } else {
-                    btn.disabled = false;
-                    btn.classList.remove('disabled');
-                }
-            }
+            const title = buildTitle(prefix, false);
+            const span = document.getElementById(`title_main_${i}`);
+            if (span) span.innerText = title;
         }
-        const plainOff = document.getElementById('title_plain_offline');
-        const plainOn = document.getElementById('title_plain_online');
-        if (plainOff) {
-            if (isOfflineZero) {
-                plainOff.innerText = '（线下佣金为0，无标题）';
-                plainOff.style.color = '#cbd5e1';
-                plainOff.style.fontStyle = 'italic';
-            } else {
-                plainOff.innerText = buildNoPrefixNoDateTitle('线下');
-                plainOff.style.color = '';
-                plainOff.style.fontStyle = '';
-            }
-        }
-        if (plainOn) plainOn.innerText = buildNoPrefixNoDateTitle('线上');
-        // 更新计划标题调整区域线下按钮状态
-        const plainOffBtn = document.querySelector('#title_plain_offline')?.parentElement?.querySelector('.copy-btn-sm');
-        if (plainOffBtn) {
-            if (isOfflineZero) {
-                plainOffBtn.disabled = true;
-                plainOffBtn.classList.add('disabled');
-            } else {
-                plainOffBtn.disabled = false;
-                plainOffBtn.classList.remove('disabled');
-            }
-        }
+        const plainSpan = document.getElementById('title_plain_main');
+        if (plainSpan) plainSpan.innerText = buildNoPrefixNoDateTitle();
     }
 
     async function copyToClipboard(text) {
-        if (!text || text === '【ROI无效】' || text === '（线下佣金为0，无标题）') {
+        if (!text || text === '【ROI无效】') {
             showToast('标题无效，无法复制');
             return;
         }
@@ -1091,7 +1035,6 @@
         saveAllData();
     }
 
-    // 弹窗显示使用说明
     function showHelpModal() {
         const modalDiv = document.createElement('div');
         modalDiv.className = 'modal-mask';
@@ -1103,13 +1046,11 @@
                 </div>
                 <div class="modal-body">
                     <ul>
-                        <li>线上结算商品： <span class="highlight-red">需将线下结算佣金改为0</span></li>
-                        <li>线下结算商品： <span class="highlight-red">需将线上结算佣金改为0</span></li>
-                        <li>线上线下双结算商品：按照对应佣金净退货率分别填写即可。</li>
-                        <li>💡 <strong>货盘参数智能粘贴</strong>：支持“隔日56”或“线上32”等格式，一键自动填写佣金和商品名称。<br>
-                        <span style="color:#ff6b4a;">使用方法：复制商品信息 → 粘贴到左侧输入框 → 点击“解析并应用参数”</span></li>
-                        <li>💡 佣金或净退货率变动后，可用右侧最后一行标题快速复制修改计划名称。</li>
-                        <li>💡 <strong>当线下佣金率为0时，右侧所有“复制线下标题”按钮会禁用，且标题区域显示提示文字</strong>，避免误复制。</li>
+                        <li>线上结算商品： <span class="highlight-red">需将线下结算佣金改为0</span>，解析时使用“线上”关键词。</li>
+                        <li>线下（隔日/非隔日）商品：使用“隔日”或“非隔日”关键词，自动分配线上5% / 线下剩余。</li>
+                        <li>💡 <strong>智能粘贴解析</strong>：支持“隔日56”、“线上32”、“非隔日50”等多种格式，自动填写佣金和商品名称，并生成对应标题。</li>
+                        <li>💡 右侧标题只保留一个，标题中的渠道词会根据解析结果自动变为“隔日”、“线上”或“非隔日”。</li>
+                        <li>💡 前缀字可自定义，位于标题最左侧。</li>
                         <li>✨ 所有参数自动保存，下次打开无需重新设置。</li>
                     </ul>
                 </div>
@@ -1129,6 +1070,11 @@
         onlineRateInput.addEventListener('input', () => { clearCargoRateIfNeeded(); refreshAll(); });
         offlineRateInput.addEventListener('input', () => { 
             clearCargoRateIfNeeded(); 
+            // 如果线下佣金变为0且当前类型不是线上，自动切换类型为线上？不自动切换，保留用户设定，但可提示
+            const offRate = parseFloat(offlineRateInput.value) || 0;
+            if (offRate === 0 && currentDisplayType !== '线上') {
+                // 可选提示，但不自动改
+            }
             refreshAll();
         });
         cargoRateInput.addEventListener('input', (e) => {
