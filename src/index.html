@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>净退出价计算器 | 多标题批量生成</title>
+    <title>全域ROI计算器</title>
     <style>
         * {
             margin: 0;
@@ -11,10 +11,14 @@
             box-sizing: border-box;
         }
 
+        html {
+            height: 100%;
+        }
+
         body {
             background: #f0f2f6;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             height: 100vh;
             overflow: hidden;
             color: #1e2f3a;
@@ -28,13 +32,13 @@
         }
 
         .left-panel {
-            width: 460px;
+            width: 430px;
             background: #ffffff;
             border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            padding: 18px 16px;
+            padding: 12px 12px;
             box-shadow: 2px 0 12px rgba(0,0,0,0.02);
         }
 
@@ -44,7 +48,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding: 18px 20px;
+            padding: 12px 16px;
         }
 
         .titles-scroll {
@@ -55,38 +59,38 @@
 
         .card {
             background: #fff;
-            border-radius: 18px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.03);
             border: 1px solid #eef2f8;
         }
 
         .double-card {
             display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
         .half-card {
             flex: 1;
             background: #fff;
-            border-radius: 18px;
-            padding: 12px 12px;
+            border-radius: 12px;
+            padding: 9px 10px;
             border: 1px solid #eef2f8;
             box-shadow: 0 1px 4px rgba(0,0,0,0.02);
         }
 
         .section-title {
             font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-size: 13px;
+            margin-bottom: 6px;
             color: #2c3e50;
             border-left: 3px solid #ff6b4a;
-            padding-left: 10px;
+            padding-left: 8px;
         }
 
         .input-group {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
         .input-label {
             display: flex;
@@ -100,8 +104,8 @@
             display: flex;
             align-items: center;
             background: #f8fafd;
-            border-radius: 12px;
-            padding: 5px 10px;
+            border-radius: 10px;
+            padding: 3px 8px;
             border: 1px solid #e2e8f0;
             transition: 0.2s;
         }
@@ -113,8 +117,8 @@
             flex: 1;
             border: none;
             background: transparent;
-            font-size: 13px;
-            padding: 4px 0;
+            font-size: 12px;
+            padding: 3px 0;
             outline: none;
             font-weight: 500;
             width: 100%;
@@ -127,52 +131,89 @@
 
         .roi-big {
             background: #fff6f2;
-            border-radius: 18px;
+            border-radius: 12px;
             text-align: center;
-            padding: 12px;
-            margin-bottom: 16px;
+            padding: 7px 10px;
+            margin-bottom: 10px;
             border: 1px solid #ffe0d6;
         }
         .roi-label {
-            font-size: 13px;
+            font-size: 12px;
             color: #8e9aaf;
         }
         .roi-number {
-            font-size: 38px;
+            font-size: 30px;
             font-weight: 800;
             color: #ff6b4a;
             line-height: 1;
-            margin: 6px 0;
+            margin: 3px 0;
         }
 
         .mult-grid {
             display: flex;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 6px;
         }
         .mult-item {
             flex: 1;
             background: #f5f7fb;
-            border-radius: 16px;
+            border-radius: 10px;
             text-align: center;
             padding: 6px 4px;
         }
         .mult-factor {
             font-size: 10px;
             color: #7e8b9e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+        .mult-factor input {
+            width: 48px;
+            border: 1px solid #cfdee9;
+            border-radius: 10px;
+            background: #fff;
+            color: #1e2f3a;
+            font-size: 12px;
+            font-weight: 700;
+            outline: none;
+            padding: 3px 4px;
+            text-align: center;
+        }
+        .mult-factor input:focus {
+            border-color: #ff6b4a;
         }
         .mult-value {
             font-weight: 700;
-            font-size: 15px;
-            margin-top: 3px;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .mult-title-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 5px;
+            font-size: 10px;
+            color: #4a5b6e;
+        }
+        .mult-title-toggle input {
+            width: 13px;
+            height: 13px;
+            accent-color: #ff6b4a;
+            cursor: pointer;
+        }
+        .mult-title-toggle span {
+            user-select: none;
         }
 
         /* 右侧标题组 - 两列布局（前缀+主标题） */
         .prefix-group {
             background: #fff;
-            border-radius: 20px;
-            margin-bottom: 16px;
-            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            padding: 9px 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
             border: 1px solid #eef2f8;
         }
@@ -182,7 +223,7 @@
             align-items: stretch;
         }
         .prefix-col {
-            width: 100px;
+            width: 86px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -190,7 +231,7 @@
         }
         .prefix-input {
             width: 100%;
-            padding: 8px 8px;
+            padding: 6px 8px;
             border-radius: 30px;
             border: 1px solid #cfdee9;
             text-align: center;
@@ -205,8 +246,8 @@
         .title-col {
             flex: 1;
             background: #fafcff;
-            border-radius: 18px;
-            padding: 10px 12px;
+            border-radius: 12px;
+            padding: 8px 10px;
             border: 1px solid #eef2f9;
             transition: 0.1s;
         }
@@ -218,19 +259,19 @@
             font-family: 'SF Mono', 'Menlo', monospace;
             font-size: 11px;
             background: #f1f5f9;
-            padding: 6px 10px;
-            border-radius: 14px;
+            padding: 5px 8px;
+            border-radius: 10px;
             color: #1e2f3a;
             word-break: break-all;
-            line-height: 1.4;
-            margin-bottom: 10px;
+            line-height: 1.35;
+            margin-bottom: 7px;
         }
         .copy-btn-sm {
             background: #ff6b4a;
             border: none;
             color: white;
             font-size: 11px;
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 30px;
             cursor: pointer;
             font-weight: 600;
@@ -246,7 +287,7 @@
             font-size: 10px;
             color: #94a3b8;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 5px;
         }
         .titles-scroll::-webkit-scrollbar {
             width: 5px;
@@ -263,7 +304,7 @@
             font-size: 10px;
             text-align: right;
             color: #94a3b8;
-            margin-top: 8px;
+            margin-top: 4px;
         }
         /* 无前缀组特殊两列布局 */
         .double-row-noprefix {
@@ -272,7 +313,7 @@
             align-items: stretch;
         }
         .label-col {
-            width: 100px;
+            width: 86px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -281,7 +322,7 @@
             font-weight: 500;
             color: #4a5b6e;
             background: #f8fafd;
-            border-radius: 18px;
+            border-radius: 12px;
             border: 1px solid #eef2f9;
         }
         /* 右侧顶部紧凑组件 */
@@ -296,14 +337,14 @@
             align-items: center;
             gap: 6px;
             background: #f8fafd;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 30px;
             border: 1px solid #e2e8f0;
         }
         .inline-product span {
             font-weight: 800;
             color: #d32f2f;
-            font-size: 15px;
+            font-size: 14px;
             letter-spacing: 0.5px;
         }
         .inline-product input {
@@ -337,33 +378,36 @@
             color: #ff6b4a;
             background: #fff2ef;
             border-radius: 30px;
-            padding: 2px 12px;
-            margin-top: 8px;
+            padding: 2px 9px;
+            margin-top: 5px;
             display: inline-block;
+            line-height: 1.25;
         }
         .smart-parse-area {
-            margin-top: 14px;
+            margin-top: 8px;
             border-top: 1px dashed #e2e8f0;
-            padding-top: 12px;
+            padding-top: 8px;
         }
         .smart-label {
             font-size: 12px;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
         .smart-input {
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 16px;
+            height: 44px;
+            min-height: 44px;
+            padding: 7px 10px;
+            border-radius: 10px;
             border: 1px solid #cfdee9;
             background: #fafcff;
-            font-size: 13px;
+            font-size: 12px;
             font-family: monospace;
-            resize: vertical;
+            resize: none;
             outline: none;
         }
         .smart-input:focus {
@@ -371,17 +415,17 @@
         }
         .button-group {
             display: flex;
-            gap: 10px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 6px;
         }
         .parse-btn {
             background: #ff6b4a;
             border: none;
             color: white;
             font-weight: 600;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 40px;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: 0.1s;
             flex: 1;
@@ -392,9 +436,9 @@
             border: none;
             color: #4a5b6e;
             font-weight: 600;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 40px;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: 0.1s;
             flex: 1;
@@ -476,14 +520,14 @@
             display: flex;
             align-items: baseline;
             gap: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 6px;
             flex-wrap: wrap;
         }
         .help-link {
-            font-size: 13px;
+            font-size: 12px;
             color: #ff6b4a;
             background: #fff3ef;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 30px;
             cursor: pointer;
             font-weight: 500;
@@ -500,6 +544,62 @@
             padding: 2px 8px;
             margin-left: 8px;
         }
+
+        @media (max-width: 980px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow: auto;
+            }
+            .app {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+            .left-panel {
+                width: 100%;
+                max-width: none;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .right-panel {
+                min-height: 540px;
+                overflow: visible;
+            }
+            .titles-scroll {
+                overflow: visible;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .left-panel,
+            .right-panel {
+                padding: 14px 12px;
+            }
+            .double-card,
+            .double-row,
+            .double-row-noprefix {
+                flex-direction: column;
+            }
+            .prefix-col,
+            .label-col {
+                width: 100%;
+                min-height: 38px;
+            }
+            .inline-control-group {
+                width: 100%;
+                gap: 10px;
+            }
+            .inline-product,
+            .inline-date {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .inline-product input {
+                width: min(180px, 50vw);
+            }
+        }
     </style>
 </head>
 <body>
@@ -507,13 +607,13 @@
     <!-- 左侧参数区 -->
     <div class="left-panel">
         <div class="header-with-help">
-            <div style="font-weight: 700; font-size: 18px;">📊 飞哥全域保本ROI计算器</div>
+            <div style="font-weight: 700; font-size: 16px;">📊 飞哥全域保本ROI计算器</div>
             <div class="help-link" id="helpBtn">❓ 使用说明</div>
         </div>
-        <div style="font-size: 11px; color: #6c7a8e; margin-bottom: 16px;">线上+线下净保本ROI · 多标题批量生成 · 自动保存</div>
+        <div style="font-size: 10px; color: #6c7a8e; margin-bottom: 8px;">线上+线下净保本ROI · 多标题批量生成 · 自动保存</div>
 
         <!-- 货盘参数卡片 -->
-        <div class="card" style="margin-bottom: 16px; background: linear-gradient(135deg, #fff9f5 0%, #ffffff 100%); border-left: 4px solid #ff6b4a;">
+        <div class="card" style="margin-bottom: 10px; background: linear-gradient(135deg, #fff9f5 0%, #ffffff 100%); border-left: 4px solid #ff6b4a;">
             <div class="section-title" style="margin-bottom: 6px;">📦 货盘参数</div>
             <div class="input-group">
                 <div class="input-label"><span>货盘总佣金率（手动）</span><span class="unit">%</span></div>
@@ -572,13 +672,29 @@
             <div id="roiDesc" style="font-size: 10px; color:#ff8a6c;"></div>
         </div>
 
-        <div class="card" style="padding: 10px 14px;">
+        <div class="card" style="padding: 8px 10px;">
             <div class="section-title" style="margin-bottom: 6px;">📈 多倍出价参考 (ROI×倍数)</div>
             <div class="mult-grid" id="multGrid">
-                <div class="mult-item"><div class="mult-factor">1.05倍</div><div class="mult-value" id="mult1">-</div></div>
-                <div class="mult-item"><div class="mult-factor">1.10倍</div><div class="mult-value" id="mult2">-</div></div>
-                <div class="mult-item"><div class="mult-factor">1.15倍</div><div class="mult-value" id="mult3">-</div></div>
-                <div class="mult-item"><div class="mult-factor">1.20倍</div><div class="mult-value" id="mult4">-</div></div>
+                <div class="mult-item">
+                    <div class="mult-factor"><input type="number" class="multiplier-input" data-mult-idx="0" step="0.01" min="0" value="1.05"><span>倍</span></div>
+                    <div class="mult-value" id="multValue0">-</div>
+                    <label class="mult-title-toggle"><input type="checkbox" class="multiplier-title-toggle" data-mult-title-idx="0" checked><span>入标题</span></label>
+                </div>
+                <div class="mult-item">
+                    <div class="mult-factor"><input type="number" class="multiplier-input" data-mult-idx="1" step="0.01" min="0" value="1.10"><span>倍</span></div>
+                    <div class="mult-value" id="multValue1">-</div>
+                    <label class="mult-title-toggle"><input type="checkbox" class="multiplier-title-toggle" data-mult-title-idx="1" checked><span>入标题</span></label>
+                </div>
+                <div class="mult-item">
+                    <div class="mult-factor"><input type="number" class="multiplier-input" data-mult-idx="2" step="0.01" min="0" value="1.15"><span>倍</span></div>
+                    <div class="mult-value" id="multValue2">-</div>
+                    <label class="mult-title-toggle"><input type="checkbox" class="multiplier-title-toggle" data-mult-title-idx="2" checked><span>入标题</span></label>
+                </div>
+                <div class="mult-item">
+                    <div class="mult-factor"><input type="number" class="multiplier-input" data-mult-idx="3" step="0.01" min="0" value="1.20"><span>倍</span></div>
+                    <div class="mult-value" id="multValue3">-</div>
+                    <label class="mult-title-toggle"><input type="checkbox" class="multiplier-title-toggle" data-mult-title-idx="3" checked><span>入标题</span></label>
+                </div>
             </div>
         </div>
         <div class="save-tip">✨ 所有修改自动保存，下次打开即恢复</div>
@@ -586,7 +702,7 @@
 
     <!-- 右侧标题生成器（单标题） -->
     <div class="right-panel">
-        <div style="font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <span>📋 计划标题复制 <span id="currentTypeBadge" class="type-badge">类型: 隔日</span></span>
             <div class="inline-control-group">
                 <div class="inline-product">
@@ -624,12 +740,14 @@
     const roiValueSpan = document.getElementById('roiValue');
     const roiDescSpan = document.getElementById('roiDesc');
     const currentTypeBadge = document.getElementById('currentTypeBadge');
-    const multSpans = {
-        1.05: document.getElementById('mult1'),
-        1.1: document.getElementById('mult2'),
-        1.15: document.getElementById('mult3'),
-        1.2: document.getElementById('mult4')
-    };
+    const multiplierInputs = Array.from(document.querySelectorAll('.multiplier-input'));
+    const multiplierTitleToggles = Array.from(document.querySelectorAll('.multiplier-title-toggle'));
+    const multiplierResultSpans = [
+        document.getElementById('multValue0'),
+        document.getElementById('multValue1'),
+        document.getElementById('multValue2'),
+        document.getElementById('multValue3')
+    ];
 
     // 六个可自定义前缀字（默认）
     const DEFAULT_PREFIX = ['可', '改', '抖', '音', '首', '字'];
@@ -639,8 +757,12 @@
     let currentDisplayType = '隔日';
 
     // 计算结果
+    const DEFAULT_MULTIPLIERS = [1.05, 1.1, 1.15, 1.2];
+    const DEFAULT_MULTIPLIER_TITLE_VISIBLE = [true, true, true, true];
     let currentROI = 0;
-    let multipliers = { 1.05: 0, 1.1: 0, 1.15: 0, 1.2: 0 };
+    let multiplierValues = [...DEFAULT_MULTIPLIERS];
+    let multiplierResults = DEFAULT_MULTIPLIERS.map(() => 0);
+    let multiplierTitleVisible = [...DEFAULT_MULTIPLIER_TITLE_VISIBLE];
     let totalRateDisplay = '';
     let onlineReturnDisplay = '';
     let offlineReturnDisplay = '';
@@ -657,6 +779,62 @@
         return fixed;
     }
 
+    function formatMultiplierInput(value) {
+        if (value === null || value === undefined || isNaN(value)) return '';
+        return Number(value).toFixed(2);
+    }
+
+    function normalizeMultiplierList(list) {
+        if (!Array.isArray(list)) return [...DEFAULT_MULTIPLIERS];
+        const normalized = list.slice(0, DEFAULT_MULTIPLIERS.length).map(value => {
+            const parsed = parseFloat(value);
+            return (!isNaN(parsed) && parsed > 0) ? parsed : null;
+        });
+        while (normalized.length < DEFAULT_MULTIPLIERS.length) {
+            normalized.push(DEFAULT_MULTIPLIERS[normalized.length]);
+        }
+        return normalized;
+    }
+
+    function normalizeMultiplierTitleVisible(list, fallbackVisible = true) {
+        if (!Array.isArray(list)) {
+            return DEFAULT_MULTIPLIER_TITLE_VISIBLE.map(() => Boolean(fallbackVisible));
+        }
+        const normalized = list.slice(0, DEFAULT_MULTIPLIER_TITLE_VISIBLE.length).map(value => Boolean(value));
+        while (normalized.length < DEFAULT_MULTIPLIER_TITLE_VISIBLE.length) {
+            normalized.push(Boolean(fallbackVisible));
+        }
+        return normalized;
+    }
+
+    function syncMultiplierInputs() {
+        multiplierInputs.forEach((input, index) => {
+            input.value = formatMultiplierInput(multiplierValues[index]);
+        });
+        multiplierTitleToggles.forEach((input, index) => {
+            input.checked = Boolean(multiplierTitleVisible[index]);
+        });
+    }
+
+    function updateMultiplierValuesFromInputs() {
+        multiplierValues = multiplierInputs.map(input => {
+            const parsed = parseFloat(input.value);
+            return (!isNaN(parsed) && parsed > 0) ? parsed : null;
+        });
+    }
+
+    function updateMultiplierTitleVisibleFromInputs() {
+        multiplierTitleVisible = multiplierTitleToggles.map(input => input.checked);
+    }
+
+    function getTitleMultiplierText() {
+        const validResults = multiplierResults.filter((value, index) => {
+            return multiplierTitleVisible[index] && !isNaN(value) && value > 0;
+        });
+        if (validResults.length === 0) return '';
+        return `，出${validResults.map(value => value.toFixed(2)).join('，')}`;
+    }
+
     // 本地存储
     function saveAllData() {
         const data = {
@@ -669,7 +847,9 @@
             offlineReturn: offlineReturnInput.value,
             cargoRate: cargoRateInput.value,
             prefixList: prefixList,
-            currentDisplayType: currentDisplayType
+            currentDisplayType: currentDisplayType,
+            multiplierValues: multiplierValues,
+            multiplierTitleVisible: multiplierTitleVisible
         };
         localStorage.setItem('exitPriceCalculator', JSON.stringify(data));
     }
@@ -713,6 +893,10 @@
                 if (offRate === 0) currentDisplayType = '线上';
                 else currentDisplayType = '隔日';
             }
+            multiplierValues = normalizeMultiplierList(data.multiplierValues);
+            const legacyTitleVisible = data.showMultipliersInTitle !== undefined ? Boolean(data.showMultipliersInTitle) : true;
+            multiplierTitleVisible = normalizeMultiplierTitleVisible(data.multiplierTitleVisible, legacyTitleVisible);
+            syncMultiplierInputs();
             updateTypeBadge();
         } catch(e) { console.warn(e); }
     }
@@ -738,8 +922,8 @@
             currentROI = 0;
             roiValueSpan.innerText = '∞';
             roiDescSpan.innerText = '有效佣金率为0，无法保本';
-            multipliers = { 1.05: 0, 1.1: 0, 1.15: 0, 1.2: 0 };
-            for (let k in multSpans) multSpans[k].innerText = '-';
+            multiplierResults = multiplierValues.map(() => 0);
+            multiplierResultSpans.forEach(span => { if (span) span.innerText = '-'; });
             totalRateDisplay = formatPercent(onRate + offRate);
             onlineReturnDisplay = formatPercent(onReturn);
             offlineReturnDisplay = formatPercent(offReturn);
@@ -750,16 +934,10 @@
         currentROI = breakeven;
         roiValueSpan.innerText = breakeven.toFixed(2);
         roiDescSpan.innerText = '';
-        multipliers = {
-            1.05: breakeven * 1.05,
-            1.1: breakeven * 1.1,
-            1.15: breakeven * 1.15,
-            1.2: breakeven * 1.2
-        };
-        multSpans[1.05].innerText = multipliers[1.05].toFixed(2);
-        multSpans[1.1].innerText = multipliers[1.1].toFixed(2);
-        multSpans[1.15].innerText = multipliers[1.15].toFixed(2);
-        multSpans[1.2].innerText = multipliers[1.2].toFixed(2);
+        multiplierResults = multiplierValues.map(value => value ? breakeven * value : 0);
+        multiplierResultSpans.forEach((span, index) => {
+            if (span) span.innerText = multiplierResults[index] > 0 ? multiplierResults[index].toFixed(2) : '-';
+        });
         
         totalRateDisplay = formatPercent(onRate + offRate);
         onlineReturnDisplay = formatPercent(onReturn);
@@ -885,11 +1063,7 @@
         const dateStr = ignoreDate ? '' : getDatePrefix();
         const returnRate = (currentDisplayType === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
         const roiFixed = currentROI.toFixed(2);
-        const mult1 = multipliers[1.05].toFixed(2);
-        const mult2 = multipliers[1.1].toFixed(2);
-        const mult3 = multipliers[1.15].toFixed(2);
-        const mult4 = multipliers[1.2].toFixed(2);
-        let core = `${prefix}${dateStr}${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        let core = `${prefix}${dateStr}${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}${getTitleMultiplierText()}`;
         if (product !== '') {
             core += `，${product}`;
         }
@@ -902,11 +1076,7 @@
         const product = productNameInput.value.trim();
         const returnRate = (currentDisplayType === '线上') ? onlineReturnDisplay : offlineReturnDisplay;
         const roiFixed = currentROI.toFixed(2);
-        const mult1 = multipliers[1.05].toFixed(2);
-        const mult2 = multipliers[1.1].toFixed(2);
-        const mult3 = multipliers[1.15].toFixed(2);
-        const mult4 = multipliers[1.2].toFixed(2);
-        let core = `${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}，出${mult1}，${mult2}，${mult3}，${mult4}`;
+        let core = `${currentDisplayType}${totalRateDisplay}，退${returnRate}，保${roiFixed}${getTitleMultiplierText()}`;
         if (product !== '') {
             core += `，${product}`;
         }
@@ -1024,7 +1194,15 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 1800);
     }
-    function escapeHtml(str) { return str; }
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    }
 
     function refreshAll() {
         calculateROI();
@@ -1047,6 +1225,7 @@
                         <li>线下（隔日/非隔日）商品：使用“隔日”或“非隔日”关键词，自动分配线上5% / 线下剩余。</li>
                         <li>💡 <strong>智能粘贴解析</strong>：支持“隔日56”、“线上32”、“非隔日50”等多种格式，自动填写佣金和商品名称，并生成对应标题。</li>
                         <li>💡 右侧标题只保留一个，标题中的渠道词会根据解析结果自动变为“隔日”、“线上”或“非隔日”。</li>
+                        <li>💡 多倍出价参考支持自定义倍数，每一项都可以单独选择是否写入计划标题。</li>
                         <li>💡 前缀字可自定义，位于标题最左侧。</li>
                         <li>✨ 所有参数自动保存，下次打开无需重新设置。</li>
                     </ul>
@@ -1064,6 +1243,20 @@
     function bindInputEvents() {
         const general = [productNameInput, dateToggle, onlineReturnInput, onlineFeeInput, offlineReturnInput];
         general.forEach(inp => inp.addEventListener('input', refreshAll));
+        multiplierInputs.forEach(input => {
+            input.addEventListener('focus', (e) => setTimeout(() => e.target.select(), 0));
+            input.addEventListener('click', (e) => e.target.select());
+            input.addEventListener('input', () => {
+                updateMultiplierValuesFromInputs();
+                refreshAll();
+            });
+        });
+        multiplierTitleToggles.forEach(input => {
+            input.addEventListener('input', () => {
+                updateMultiplierTitleVisibleFromInputs();
+                refreshAll();
+            });
+        });
         onlineRateInput.addEventListener('input', () => { clearCargoRateIfNeeded(); refreshAll(); });
         offlineRateInput.addEventListener('input', () => { 
             clearCargoRateIfNeeded(); 
@@ -1081,6 +1274,7 @@
 
     function init() {
         loadAllData();
+        syncMultiplierInputs();
         calculateROI();
         renderTitles();
         updateDynamicTitles();
